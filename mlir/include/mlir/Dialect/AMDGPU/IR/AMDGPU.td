@@ -1151,13 +1151,14 @@ def AMDGPU_SparseMFMAOp :
       - M=N=16, K=128 for i8 and fp8 sources
       - M=N=32, K=64 for i8 and fp8 sources
 
-    The `sparseIdx` parameter (i32) contains packed indices identifying the positions
-    of non-zero elements in the 2:4 sparse matrix A. For 16-bit data, this uses 2 groups
-    of 4-bit indices; for 8-bit data, 4 groups of 4-bit indices.
+    The `sparseIdx` parameter (i32) contains packed indices identifying the
+    positions of non-zero elements in the 2:4 sparse matrix A. For 16-bit data,
+    this uses four groups of 8-bit indices; for 8-bit data, 2 groups of 16-bit
+    indices.
 
     The `cbsz` and `abid` parameters are repurposed to select the index set.
-    If `cbsz == 0`, then `abid[1:0]` selects which index set to use. If `cbsz != 0`,
-    then the very first is selected.
+    If `cbsz == 0`, then `abid[1:0]` selects which index set to use. 
+    If `cbsz != 0`, then the very first is selected.
 
     Example:
     ```mlir
