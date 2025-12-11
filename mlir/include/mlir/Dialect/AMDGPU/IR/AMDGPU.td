@@ -960,13 +960,25 @@ def MFMAOutTypes : AnyTypeOf<[F64,
                               VectorOfLengthAndType<[4], [F64]>]>;
 
 // sparse_mfma (smfmac)
-def SMFMACInTypes : AnyTypeOf<[VectorOfLengthAndType<[4, 8], [F16]>,
-                               VectorOfLengthAndType<[16], [F16]>,
-                               VectorOfLengthAndType<[4, 8], [I16]>,
-                               VectorOfLengthAndType<[8, 16], [BF16]>,
-                               VectorOfLengthAndType<[2, 4, 8], [I32]>]>;
-def SMFMACOutTypes : AnyTypeOf<[VectorOfLengthAndType<[4, 16], [F32]>,
-                                VectorOfLengthAndType<[4, 16], [I32]>]>;
+def SMFMACSparseInTypes : AnyTypeOf<[
+    VectorOfLengthAndType<[4, 8], [F16]>,
+    VectorOfLengthAndType<[4, 8], [I16]>,
+    VectorOfLengthAndType<[8], [BF16]>,
+    VectorOfLengthAndType<[2, 4], [I32]> 
+]>;
+
+def SMFMACDenseInTypes : AnyTypeOf<[
+    VectorOfLengthAndType<[8, 16], [F16]>,
+    VectorOfLengthAndType<[8, 16], [I16]>,
+    VectorOfLengthAndType<[16], [BF16]>,
+    VectorOfLengthAndType<[4, 8], [I32]> 
+]>;
+
+def SMFMACOutTypes : AnyTypeOf<[
+    VectorOfLengthAndType<[4, 16], [F32]>,
+    VectorOfLengthAndType<[4, 16], [I32]>
+]>;
+
 // scaled_mfma
 def ScaledMFMAInTypes : AnyTypeOf<[VectorOfLengthAndType<[32], [F8E5M2, F8E4M3FN]>,
                                    VectorOfLengthAndType<[32], [F6E2M3FN, F6E3M2FN, F4E2M1FN]>]>;
@@ -1113,8 +1125,8 @@ def AMDGPU_SparseMFMAOp :
                    ConfinedAttr<I32Attr, [IntIsOneOf<[16, 32]>]>:$m,
                    ConfinedAttr<I32Attr, [IntIsOneOf<[16, 32]>]>:$n,
                    ConfinedAttr<I32Attr, [IntIsOneOf<[16, 32, 64, 128]>]>:$k,
-                   SMFMACInTypes:$sourceA,
-                   SMFMACInTypes:$sourceB,
+                   SMFMACSparseInTypes:$sourceA,
+                   SMFMACDenseInTypes:$sourceB,
                    SMFMACOutTypes:$destC,
                    I32:$sparseIdx,
                    DefaultValuedAttr<I32Attr, "0">:$cbsz,
@@ -1139,31 +1151,30 @@ def AMDGPU_SparseMFMAOp :
       - M=N=16, K=128 for i8 and fp8 sources
       - M=N=32, K=64 for i8 and fp8 sources
 
-    Matrix C shares the same VGPR as the result, matrix D.
+    The `sparseIdx` parameter (i32) contains packed indices identifying the positions
+    of non-zero elements in the 2:4 sparse matrix A. For 16-bit data, this uses 2 groups
+    of 4-bit indices; for 8-bit data, 4 groups of 4-bit indices.
 
-    The `sparseIdx` parameter contains the indices of non-zero elements in matrix A.
-    The indices are divided in 4 bits following the 4:2 sparsity pattern. For each index pair,
-    index 0 < index 1 & index 0 != index1. If the source data is 1 bits, we have two 16 bit sets of sparse indices
-    and if the source data is 8 bits, we have 4 8 bit sets of sparse indices.
-
-    The CBSZ and ABID fields have been repurposed to select the desired portion of the index data. If CBSZ == 0, then ABID[1:0] specifies which index set to use. If CBSZ != 0, then the first set is always selected.
-
+    The `cbsz` and `abid` parameters are repurposed to select the index set.
+    If `cbsz == 0`, then `abid[1:0]` selects which index set to use. If `cbsz != 0`,
+    then the very first is selected.
 
     Example:
     ```mlir
-      %0 = amdgpu.sparse_mfma 16x16x32 %matA * %matB + %matC sparse %idx
+      %0 = amdgpu.sparse_mfma 16x16x32 %matA * %matB + %matC sparse(%idx)
         : vector<4xf16>, vector<8xf16>, vector<4xf32>
 
-      %1 = amdgpu.sparse_mfma 32x32x16 %matA * %matB + %matC sparse %idx
-        : vector<4xf16>, vector<8xf16>, vector<16xf32>
-
-      %2 = amdgpu.sparse_mfma 16x16x64 %matA * %matB + %matC sparse %idx
+      %1 = amdgpu.sparse_mfma 16x16x64 %matA * %matB + %matC sparse(%idx)
         : vector<8xf16>, vector<16xf16>, vector<4xf32>
+
+      %2 = amdgpu.sparse_mfma 16x16x128 %matA * %matB + %matC sparse(%idx)
+        { cbsz = 0 : i32, abid = 1 : i32 }
+        : vector<4xi32>, vector<8xi32>, vector<4xi32>
     ```
   }];
   let assemblyFormat = [{
     custom<MNKDimensionList>($m, $n, $k) $sourceA `*` $sourceB `+` $destC
-    $sparseIdx
+    `sparse` `(` $sparseIdx `)`
     attr-dict
     `:` type($sourceA) `,` type($sourceB) `,` type($destC)
   }];
