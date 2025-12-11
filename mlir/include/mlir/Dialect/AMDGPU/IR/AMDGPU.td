@@ -1139,17 +1139,13 @@ def AMDGPU_SparseMFMAOp :
     multiply-accumulate operations using 2:4 structured sparsity on matrix A
     with dense matrices B, C, and D.
 
-    On gfx90a/gfx940, smfmac intrinsics support:
-      - M=N=16, K=32 for f16 and bf16 sources
-      - M=N=32, K=16 for f16 and bf16 sources
-      - M=N=16, K=64 for i8 and fp8 sources
-      - M=N=32, K=32 for i8 and fp8 sources
+    On gfx940, smfmac intrinsics support:
+      - M=N=16, K=32 and M=N=32, K=16 for f16 and bf16 sources
+      - M=N=16, K=64 and M=N=32, K=32 for i8 and fp8 sources
 
     On gfx950, smfmac intrinsics additionally support:
-      - M=N=16, K=64 for f16 and bf16 sources
-      - M=N=32, K=32 for f16 and bf16 sources
-      - M=N=16, K=128 for i8 and fp8 sources
-      - M=N=32, K=64 for i8 and fp8 sources
+      - M=N=16, K=64 and M=N=32, K=32 for f16 and bf16 sources
+      - M=N=16, K=128 and M=N=32, K=64 for i8 and fp8 sources
 
     The `sparseIdx` parameter (i32) contains packed indices identifying the
     positions of non-zero elements in the 2:4 sparse matrix A. For 16-bit data,
