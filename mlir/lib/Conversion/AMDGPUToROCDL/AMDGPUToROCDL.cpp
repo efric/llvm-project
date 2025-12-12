@@ -1447,15 +1447,13 @@ struct SparseMFMAOpLowering : public ConvertOpToLLVMPattern<SparseMFMAOp> {
       return op.emitOpError(
           "no intrinsic matching sparse MFMA on the given chipset");
 
-    OperationState loweredOp(loc, *maybeIntrinsic);
+    OperationState loweredOp(loc, maybeIntrinsic.value());
     loweredOp.addTypes(outType);
     loweredOp.addOperands({a, b, destC, adaptor.getSparseIdx(),
                            createI32Constant(rewriter, loc, op.getCbsz()),
                            createI32Constant(rewriter, loc, op.getAbid())});
     Value lowered = rewriter.create(loweredOp)->getResult(0);
-
     rewriter.replaceOp(op, lowered);
-
     return success();
   }
 };

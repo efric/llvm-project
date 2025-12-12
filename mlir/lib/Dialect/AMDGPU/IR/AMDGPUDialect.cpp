@@ -542,7 +542,6 @@ LogicalResult SparseMFMAOp::verify() {
   int64_t denseLen = denseType.getNumElements();
   int64_t destLen = destType.getNumElements();
 
-  // Sparse A has half the elements of Dense B due to 2:4 sparsity.
   if (denseLen != 2 * sparseLen)
     return emitOpError("expected dense source operand to have exactly double "
                        "the number of elements of the sparse source operand");
