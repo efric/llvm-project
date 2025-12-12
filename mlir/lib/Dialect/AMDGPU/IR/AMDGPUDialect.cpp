@@ -30,6 +30,7 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/TypeSwitch.h"
+#include "llvm/Support/LogicalResult.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -519,6 +520,14 @@ LogicalResult MFMAOp::verify() {
     return emitOpError(
         "negation flags only available for double-precision operations");
 
+  return success();
+}
+
+//===----------------------------------------------------------------------===//
+// SparseMFMAOp
+//===----------------------------------------------------------------------===//
+
+LogicalResult SparseMFMAOp::verify() {
   return success();
 }
 
