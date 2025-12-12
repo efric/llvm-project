@@ -546,8 +546,7 @@ LogicalResult SparseMFMAOp::verify() {
   // Check that source element types are compatible.
   // For fp8/bf8 mixed operations, element types can differ (e.g., fp8 * bf8).
   // For other types, element types must match exactly.
-  auto isFloat8 = [](Type t) { return t.isFloat(8); };
-  bool bothFloat8 = isFloat8(sparseElem) && isFloat8(denseElem);
+  bool bothFloat8 = sparseElem.isFloat(8) && denseElem.isFloat(8);
   if (!bothFloat8 && sparseElem != denseElem)
     return emitOpError(
         "expected source operands to have the same element type");
