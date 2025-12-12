@@ -30,7 +30,6 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/TypeSwitch.h"
-#include "llvm/Support/LogicalResult.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -530,11 +529,9 @@ LogicalResult MFMAOp::verify() {
 LogicalResult SparseMFMAOp::verify() {
   constexpr uint32_t waveSize = 64;
 
-  auto sparseType = dyn_cast<VectorType>(getSourceA().getType());
-  auto denseType = dyn_cast<VectorType>(getSourceB().getType());
-  auto destType = dyn_cast<VectorType>(getDestC().getType());
-  if (!sparseType || !denseType || !destType)
-    return emitOpError("sparse MFMA operands must be vectors");
+  auto sparseType = cast<VectorType>(getSourceA().getType());
+  auto denseType = cast<VectorType>(getSourceB().getType());
+  auto destType = cast<VectorType>(getDestC().getType());
 
   Type sparseElem = sparseType.getElementType();
   Type denseElem = denseType.getElementType();

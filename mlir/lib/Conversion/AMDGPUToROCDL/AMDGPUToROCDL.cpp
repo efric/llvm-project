@@ -662,8 +662,6 @@ static Value convertMFMAVectorOperand(ConversionPatternRewriter &rewriter,
 }
 
 /// Converts sparse MFMA (smfmac) operands to the expected ROCDL types.
-/// Unlike regular MFMA, sparse MFMA always uses vector<Nxi32> for i8/fp8 types,
-/// never scalar integers.
 static Value convertSparseMFMAVectorOperand(ConversionPatternRewriter &rewriter,
                                             Location loc, Value input,
                                             bool allowBf16 = true) {
@@ -1439,7 +1437,7 @@ struct SparseMFMAOpLowering : public ConvertOpToLLVMPattern<SparseMFMAOp> {
                                              adaptor.getSourceA(), isGfx950);
     Value b = convertSparseMFMAVectorOperand(rewriter, loc,
                                              adaptor.getSourceB(), isGfx950);
-    Value destC = adaptor.getDestC();
+    Value c = adaptor.getDestC();
 
     std::optional<StringRef> maybeIntrinsic = smfmacOpToIntrinsic(op, isGfx950);
 
@@ -1449,7 +1447,7 @@ struct SparseMFMAOpLowering : public ConvertOpToLLVMPattern<SparseMFMAOp> {
 
     OperationState loweredOp(loc, maybeIntrinsic.value());
     loweredOp.addTypes(outType);
-    loweredOp.addOperands({a, b, destC, adaptor.getSparseIdx(),
+    loweredOp.addOperands({a, b, c, adaptor.getSparseIdx(),
                            createI32Constant(rewriter, loc, op.getCbsz()),
                            createI32Constant(rewriter, loc, op.getAbid())});
     Value lowered = rewriter.create(loweredOp)->getResult(0);
