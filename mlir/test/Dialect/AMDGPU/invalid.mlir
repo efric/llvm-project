@@ -457,7 +457,7 @@ func.func @make_gather_dma_descriptor_invalid_index_types(%base: !amdgpu.tdm_gat
 
 func.func @sparse_mfma_dense_not_double_sparse(%a: vector<4xf16>, %b: vector<4xf16>, %c: vector<4xf32>, %idx: vector<4xi8>) -> vector<4xf32> {
   // expected-error@+1 {{'amdgpu.sparse_mfma' op expected dense source operand to have exactly double the number of elements of the sparse source operand}}
-  %d = amdgpu.sparse_mfma 16x16x32 %a * %b + %c sparse(%idx) : vector<4xf16>, vector<4xf16>, vector<4xf32>
+  %d = amdgpu.sparse_mfma 16x16x32 %a * %b + %c sparse(%idx : vector<4xi8>) : vector<4xf16>, vector<4xf16>, vector<4xf32>
   func.return %d : vector<4xf32>
 }
 
@@ -465,7 +465,7 @@ func.func @sparse_mfma_dense_not_double_sparse(%a: vector<4xf16>, %b: vector<4xf
 
 func.func @sparse_mfma_mismatched_source_types(%a: vector<4xf16>, %b: vector<8xbf16>, %c: vector<4xf32>, %idx: vector<4xi8>) -> vector<4xf32> {
   // expected-error@+1 {{'amdgpu.sparse_mfma' op expected source operands to have the same element type}}
-  %d = amdgpu.sparse_mfma 16x16x32 %a * %b + %c sparse(%idx) : vector<4xf16>, vector<8xbf16>, vector<4xf32>
+  %d = amdgpu.sparse_mfma 16x16x32 %a * %b + %c sparse(%idx : vector<4xi8>) : vector<4xf16>, vector<8xbf16>, vector<4xf32>
   func.return %d : vector<4xf32>
 }
 
@@ -473,7 +473,7 @@ func.func @sparse_mfma_mismatched_source_types(%a: vector<4xf16>, %b: vector<8xb
 
 func.func @sparse_mfma_abid_invalid_for_8bit(%a: vector<8xi8>, %b: vector<16xi8>, %c: vector<4xi32>, %idx: vector<2xi16>) -> vector<4xi32> {
   // expected-error@+1 {{'amdgpu.sparse_mfma' op ABID must be 0 or 1 for 8-bit source data}}
-  %d = amdgpu.sparse_mfma 16x16x64 %a * %b + %c sparse(%idx) { abid = 2 : i32, cbsz = 0 : i32 } : vector<8xi8>, vector<16xi8>, vector<4xi32>
+  %d = amdgpu.sparse_mfma 16x16x64 %a * %b + %c sparse(%idx : vector<2xi16>) { abid = 2 : i32, cbsz = 0 : i32 } : vector<8xi8>, vector<16xi8>, vector<4xi32>
   func.return %d : vector<4xi32>
 }
 
@@ -481,7 +481,7 @@ func.func @sparse_mfma_abid_invalid_for_8bit(%a: vector<8xi8>, %b: vector<16xi8>
 
 func.func @sparse_mfma_abid_invalid_for_16bit(%a: vector<4xf16>, %b: vector<8xf16>, %c: vector<4xf32>, %idx: vector<4xi8>) -> vector<4xf32> {
   // expected-error@+1 {{'amdgpu.sparse_mfma' op ABID must be between 0 and 3 for 16-bit source data}}
-  %d = amdgpu.sparse_mfma 16x16x32 %a * %b + %c sparse(%idx) { abid = 4 : i32, cbsz = 0 : i32 } : vector<4xf16>, vector<8xf16>, vector<4xf32>
+  %d = amdgpu.sparse_mfma 16x16x32 %a * %b + %c sparse(%idx : vector<4xi8>) { abid = 4 : i32, cbsz = 0 : i32 } : vector<4xf16>, vector<8xf16>, vector<4xf32>
   func.return %d : vector<4xf32>
 }
 
@@ -489,7 +489,7 @@ func.func @sparse_mfma_abid_invalid_for_16bit(%a: vector<4xf16>, %b: vector<8xf1
 
 func.func @sparse_mfma_wrong_idx_type_for_8bit(%a: vector<8xi8>, %b: vector<16xi8>, %c: vector<4xi32>, %idx: vector<4xi8>) -> vector<4xi32> {
   // expected-error@+1 {{'amdgpu.sparse_mfma' op expected vector<2xi16> sparse indices for 8-bit source data, but got}}
-  %d = amdgpu.sparse_mfma 16x16x64 %a * %b + %c sparse(%idx) : vector<8xi8>, vector<16xi8>, vector<4xi32>
+  %d = amdgpu.sparse_mfma 16x16x64 %a * %b + %c sparse(%idx : vector<4xi8>) : vector<8xi8>, vector<16xi8>, vector<4xi32>
   func.return %d : vector<4xi32>
 }
 
@@ -497,7 +497,7 @@ func.func @sparse_mfma_wrong_idx_type_for_8bit(%a: vector<8xi8>, %b: vector<16xi
 
 func.func @sparse_mfma_wrong_idx_type_for_16bit(%a: vector<4xf16>, %b: vector<8xf16>, %c: vector<4xf32>, %idx: vector<2xi16>) -> vector<4xf32> {
   // expected-error@+1 {{'amdgpu.sparse_mfma' op expected vector<4xi8> sparse indices for 16-bit source data, but got}}
-  %d = amdgpu.sparse_mfma 16x16x32 %a * %b + %c sparse(%idx) : vector<4xf16>, vector<8xf16>, vector<4xf32>
+  %d = amdgpu.sparse_mfma 16x16x32 %a * %b + %c sparse(%idx : vector<2xi16>) : vector<4xf16>, vector<8xf16>, vector<4xf32>
   func.return %d : vector<4xf32>
 }
 
@@ -505,7 +505,7 @@ func.func @sparse_mfma_wrong_idx_type_for_16bit(%a: vector<4xf16>, %b: vector<8x
 
 func.func @sparse_mfma_wrong_source_count(%a: vector<4xf16>, %b: vector<8xf16>, %c: vector<4xf32>, %idx: vector<4xi8>) -> vector<4xf32> {
   // expected-error@+1 {{'amdgpu.sparse_mfma' op expected 16 source values for this operation but got 8}}
-  %d = amdgpu.sparse_mfma 32x32x16 %a * %b + %c sparse(%idx) : vector<4xf16>, vector<8xf16>, vector<4xf32>
+  %d = amdgpu.sparse_mfma 32x32x16 %a * %b + %c sparse(%idx : vector<4xi8>) : vector<4xf16>, vector<8xf16>, vector<4xf32>
   func.return %d : vector<4xf32>
 }
 
@@ -513,6 +513,6 @@ func.func @sparse_mfma_wrong_source_count(%a: vector<4xf16>, %b: vector<8xf16>, 
 
 func.func @sparse_mfma_wrong_dest_count(%a: vector<4xf16>, %b: vector<8xf16>, %c: vector<16xf32>, %idx: vector<4xi8>) -> vector<16xf32> {
   // expected-error@+1 {{'amdgpu.sparse_mfma' op expected 4 result values for this operation but got 16}}
-  %d = amdgpu.sparse_mfma 16x16x32 %a * %b + %c sparse(%idx) : vector<4xf16>, vector<8xf16>, vector<16xf32>
+  %d = amdgpu.sparse_mfma 16x16x32 %a * %b + %c sparse(%idx : vector<4xi8>) : vector<4xf16>, vector<8xf16>, vector<16xf32>
   func.return %d : vector<16xf32>
 }

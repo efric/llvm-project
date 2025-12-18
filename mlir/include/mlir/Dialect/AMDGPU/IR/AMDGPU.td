@@ -1207,22 +1207,22 @@ def AMDGPU_SparseMFMAOp :
     Example:
     ```mlir
       // 16-bit source (f16): sparseIdx is vector<4xi8>
-      %0 = amdgpu.sparse_mfma 16x16x32 %matA * %matB + %matC sparse(%idx4xi8)
+      %0 = amdgpu.sparse_mfma 16x16x32 %matA * %matB + %matC sparse(%idx : vector<4xi8>)
         : vector<4xf16>, vector<8xf16>, vector<4xf32>
 
       // 8-bit source (i8): sparseIdx is vector<2xi16>
-      %1 = amdgpu.sparse_mfma 16x16x64 %matA * %matB + %matC sparse(%idx2xi16)
+      %1 = amdgpu.sparse_mfma 16x16x64 %matA * %matB + %matC sparse(%idx : vector<2xi16>)
         : vector<8xi8>, vector<16xi8>, vector<4xi32>
 
       // 8-bit source (fp8) with cbsz/abid: sparseIdx is vector<2xi16>
-      %2 = amdgpu.sparse_mfma 16x16x64 %matA * %matB + %matC sparse(%idx2xi16)
+      %2 = amdgpu.sparse_mfma 16x16x64 %matA * %matB + %matC sparse(%idx : vector<2xi16>)
         { cbsz = 0 : i32, abid = 1 : i32 }
         : vector<8xf8E4M3FNUZ>, vector<16xf8E4M3FNUZ>, vector<4xf32>
     ```
   }];
   let assemblyFormat = [{
     custom<MNKDimensionList>($m, $n, $k) $sourceA `*` $sourceB `+` $destC
-    `sparse` `(` $sparseIdx `)`
+    `sparse` `(` $sparseIdx `:` type($sparseIdx) `)`
     attr-dict
     `:` type($sourceA) `,` type($sourceB) `,` type($destC)
   }];
